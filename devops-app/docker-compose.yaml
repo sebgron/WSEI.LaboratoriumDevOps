@@ -1,0 +1,35 @@
+# Określenie zależności między usługami.
+depends_on:
+  db:
+    condition: service_healthy  # Usługa zależna.
+
+# Konfiguracja bazy danych PostgreSQL
+db:
+  image: postgres  # Używamy obrazu PostgreSQL z Docker Hub
+  restart: always  # Usługa będzie automatycznie uruchamiana
+  user: postgres  # Uzytkownik "postgres"
+  secrets:
+    - db-password  # Korzystanie z secrets "db-password"
+  volumes:
+    - db-data:/var/lib/postgresql/data  # Mapowanie wolumenu
+  environment:
+    - POSTGRES_DB=devopsDb  # Tworzenie bazy danych
+    - POSTGRES_PASSWORD_FILE=/run/secrets/db-password  # Ustawienie hasła do bazy danych z pliku secrets
+  expose:
+    - 5432  # Port usługi PostgreSQL
+
+  # Testy 
+  healthcheck:
+    test: [ "CMD", "pg_isready" ]  
+    interval: 10s  
+    timeout: 5s  
+    retries: 5  
+
+# Definicja wolumenu
+volumes:
+  db-data:  # Wolumen przechowujący dane bazy danych
+
+# Definicja secrets, która przechowuje hasło do bazy danych
+secrets:
+  db-password:
+    file: db/password.txt  # Ścieżka do pliku zawierającego hasło
